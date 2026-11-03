@@ -41,13 +41,16 @@
 
 ## よく使うコマンド
 
-（プロジェクト作成後に追記する）
-
 ```
-npm run dev     # 開発サーバー
+npm run dev     # 開発サーバー（http://localhost:3000）
 npm run build   # ビルド
 npm run lint    # Lint
 ```
+
+- Next.js 16（App Router、`src/` 構成、import は `@/*`）、React 19、Tailwind CSS v4、Node.js v26
+- 配色は `src/app/globals.css` の `@theme` に定義済み（例：`bg-surface`、`text-text-sub`、`border-line`、`bg-primary`）。色は直接書かずにこれを使う
+- 環境変数の一覧は `.env.example`。コピーして `.env.local` を作る
+- `AGENTS.md` は `next dev` が自動で作成・更新する（Next.js の注意書き）。消さずにコミットしてよい
 
 ## 補足
 

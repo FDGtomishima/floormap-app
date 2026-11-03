@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/*
+ * 配色は docs/03_ui-design.md に合わせる。
+ * Tailwind のクラスとして使える（例：bg-surface、text-text-sub、border-line、bg-primary）。
+ * ジャンル色はマップごとに genres テーブルで持つため、ここには定義しない。
+ */
+@theme {
+  --font-sans: var(--font-noto-sans-jp), system-ui, sans-serif;
+
+  /* 基本色 */
+  --color-text: #1a1d23;
+  --color-text-sub: #5b6472;
+  --color-bg: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-line: #e5e7eb;
+  --color-input-line: #c3c9d2;
+
+  /* 操作（主ボタン・選択中） */
+  --color-primary: #2563eb;
+  --color-primary-text: #1d4ed8;
+  --color-selected-bg: #eff4ff;
+
+  /* 注意（未公開の変更・番号未設定） */
+  --color-warning-bg: #fef3c7;
+  --color-warning-bg-light: #fffbeb;
+  --color-warning-line: #f59e0b;
+  --color-warning-line-strong: #d97706;
+  --color-warning-text: #92400e;
+
+  /* エラー */
+  --color-error-bg: #fef2f2;
+  --color-error-line: #fecaca;
+  --color-error-text: #b91c1c;
+
+  /* 成功・OK */
+  --color-success-bg: #d9f5ea;
+  --color-success-line: #10b981;
+  --color-success-text: #0b6b4c;
+
+  /* AI関連のボタン */
+  --color-ai-bg: #f5f3ff;
+  --color-ai-line: #c4b5fd;
+  --color-ai-text: #5b2eb8;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
