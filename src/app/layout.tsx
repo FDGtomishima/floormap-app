@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
 import { Noto_Sans_JP } from "next/font/google";
+import { defaultLocale } from "@/i18n/request";
 import "./globals.css";
 
 const notoSansJp = Noto_Sans_JP({
@@ -16,8 +18,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ja" className={`${notoSansJp.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang={defaultLocale} className={`${notoSansJp.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col">
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+      </body>
     </html>
   );
 }
