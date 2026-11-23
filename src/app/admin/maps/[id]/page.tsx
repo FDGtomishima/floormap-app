@@ -5,7 +5,9 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { MAP_IMAGES_BUCKET } from "@/lib/floor-image-config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { parsePolygon } from "@/lib/polygon";
 import { FloorImageUploader } from "./floor-image-uploader";
+import { SectionEditor, type EditorSection } from "./section-editor";
 import { StructurePanel, type BuildingItem } from "./structure-panel";
 
 export const metadata: Metadata = { title: "マップ編集 | フロアマップ" };
@@ -73,6 +75,20 @@ async function MapEditor({
         }
       : null;
 
+  // 選択中のフロアの区画（区画エディタの初期値）
+  let editorSections: EditorSection[] = [];
+  if (selected && image) {
+    const [{ data: sectionRows }, { data: shopRows }] = await Promise.all([
+      supabase.from("sections").select("id, number, points, source").eq("floor_id", selected.id).order("created_at"),
+      supabase.from("shops").select("section_id").eq("map_id", id),
+    ]);
+    const withShop = new Set((shopRows ?? []).map((r) => r.section_id));
+    editorSections = (sectionRows ?? []).flatMap((r) => {
+      const points = parsePolygon(r.points);
+      return points ? [{ id: r.id, number: r.number, points, source: r.source, hasShop: withShop.has(r.id) }] : [];
+    });
+  }
+
   return (
     <main className="space-y-6">
       <div className="space-y-1">
@@ -90,7 +106,7 @@ async function MapEditor({
           <StructurePanel mapId={map.id} buildings={tree} selectedFloorId={selected?.id ?? null} />
         </aside>
 
-        <section className="min-h-[480px] rounded-2xl border border-line bg-surface p-6">
+        <section className="min-h-[480px] min-w-0 rounded-2xl border border-line bg-surface p-4">
           {selected ? (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -105,17 +121,7 @@ async function MapEditor({
                 )}
               </div>
               {image ? (
-                <div className="overflow-auto rounded-xl border border-line bg-bg">
-                  {/* 図面の表示は工程 2-3 で SVG の区画エディタに置き換える */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={image.url}
-                    alt={t("imageAlt", { name: selected.name })}
-                    width={image.width}
-                    height={image.height}
-                    className="h-auto max-h-[70vh] w-full object-contain"
-                  />
-                </div>
+                <SectionEditor key={selected.id} floorId={selected.id} image={image} initialSections={editorSections} />
               ) : (
                 <FloorImageUploader key={selected.id} floorId={selected.id} hasImage={false} sectionCount={selected.sectionCount} />
               )}

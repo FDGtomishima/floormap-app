@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
+        <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-4 px-6">
           <Link href="/admin" className="text-lg font-bold">
             {t("appName")}
           </Link>
@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
           </Suspense>
         </div>
       </header>
-      <div className="mx-auto w-full max-w-6xl flex-1 px-6 py-8">{children}</div>
+      <div className="mx-auto w-full max-w-[1440px] flex-1 px-6 py-8">{children}</div>
     </div>
   );
 }
