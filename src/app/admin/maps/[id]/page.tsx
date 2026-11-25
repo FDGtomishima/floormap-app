@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
@@ -91,16 +90,6 @@ async function MapEditor({
 
   return (
     <main className="space-y-6">
-      <div className="space-y-1">
-        <Link href="/admin" className="inline-block py-2 text-sm text-primary-text underline">
-          {t("backToList")}
-        </Link>
-        <div className="flex flex-wrap items-baseline gap-4">
-          <h1 className="text-2xl font-bold">{map.name}</h1>
-          <span className="font-mono tracking-widest text-text-sub">{map.code}</span>
-        </div>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <aside className="rounded-2xl border border-line bg-surface p-4">
           <StructurePanel mapId={map.id} buildings={tree} selectedFloorId={selected?.id ?? null} />

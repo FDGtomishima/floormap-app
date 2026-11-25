@@ -9,7 +9,8 @@
     "lint": "eslint",
     "check:rls": "node --env-file=.env.local scripts/check-rls.mts",
     "check:create-map": "node --env-file=.env.local scripts/check-create-map.mts",
-    "check:floor-image": "node --env-file=.env.local scripts/check-floor-image.mts"
+    "check:floor-image": "node --env-file=.env.local scripts/check-floor-image.mts",
+    "check:import-shops": "node --env-file=.env.local scripts/check-import-shops.mts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -19,7 +20,8 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-zoom-pan-pinch": "4.2.0",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",

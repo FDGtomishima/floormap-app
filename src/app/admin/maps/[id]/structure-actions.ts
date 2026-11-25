@@ -3,7 +3,7 @@
 // 建物・フロアの追加・変更・並べ替え・削除（F-03）。
 // ログイン中の管理者の権限で Supabase を呼ぶため、本人のマップ以外は RLS で拒否される
 import { refresh } from "next/cache";
-import { removeFloorImages } from "@/lib/floor-image-cleanup";
+import { removeFloorImages, removeShopImages, shopImagePathsForFloors } from "@/lib/floor-image-cleanup";
 import { isValidBuildingCode, isValidFloorCode, normalizeCode } from "@/lib/section-number";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -101,9 +101,12 @@ export async function deleteBuilding(id: string): Promise<StructureResult> {
   if ((count ?? 0) <= 1) return { ok: false, error: "lastBuilding" };
 
   const { data: floors } = await supabase.from("floors").select("id").eq("building_id", id);
+  const floorIds = (floors ?? []).map((f) => f.id);
+  const shopImages = await shopImagePathsForFloors(supabase, floorIds);
   const { error } = await supabase.from("buildings").delete().eq("id", id);
   if (error) return fail(error);
-  await removeFloorImages(supabase, target.map_id, (floors ?? []).map((f) => f.id));
+  await removeFloorImages(supabase, target.map_id, floorIds);
+  await removeShopImages(supabase, target.map_id, shopImages);
   refresh();
   return { ok: true };
 }
@@ -167,11 +170,13 @@ export async function moveFloor(id: string, direction: Direction): Promise<Struc
 
 export async function deleteFloor(id: string): Promise<StructureResult> {
   const supabase = await createSupabaseServerClient();
-  // 区画・店舗もまとめて削除される（確認は画面側で行う）
+  // 区画・店舗もまとめて削除される（確認は画面側で行う）。店舗の写真は先にパスを集めておく
+  const shopImages = await shopImagePathsForFloors(supabase, [id]);
   const { data, error } = await supabase.from("floors").delete().eq("id", id).select("id, map_id");
   if (error) return fail(error);
   if (!data || data.length === 0) return { ok: false, error: "notFound" };
   await removeFloorImages(supabase, data[0].map_id, [id]);
+  await removeShopImages(supabase, data[0].map_id, shopImages);
   refresh();
   return { ok: true };
 }

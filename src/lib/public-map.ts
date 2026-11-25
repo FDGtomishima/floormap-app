@@ -139,10 +139,15 @@ export type ViewerMapResult = { status: "ok"; data: PublicMapData } | { status: 
 export async function getViewerMap(codeInput: string): Promise<ViewerMapResult> {
   const code = normalizeCode(decodeURIComponent(codeInput));
   if (!/^[A-Z0-9]{4,12}$/.test(code)) return { status: "notFound" };
-  if (process.env.VIEWER_SHOW_DRAFTS !== "true") return { status: "notFound" };
+  if (process.env.VIEWER_SHOW_DRAFTS !== "true") {
+    // 理由はサーバーのログにだけ出す（Vercel の Logs で確認できる）。閲覧者には「見つかりません」とだけ表示する
+    console.warn("viewer: VIEWER_SHOW_DRAFTS が true ではないため、下書きを表示しません");
+    return { status: "notFound" };
+  }
 
   const supabase = await createSupabaseAdminClient();
-  const { data: map } = await supabase.from("maps").select("id").eq("code", code).maybeSingle();
+  const { data: map, error } = await supabase.from("maps").select("id").eq("code", code).maybeSingle();
+  if (error) console.error("viewer: マップの取得に失敗しました（Supabase の URL・service role キーを確認）", error.message);
   if (!map) return { status: "notFound" };
   const data = await buildMapSnapshot(map.id);
   return data ? { status: "ok", data } : { status: "notFound" };

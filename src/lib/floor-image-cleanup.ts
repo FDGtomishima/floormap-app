@@ -15,3 +15,27 @@ export async function removeFloorImages(supabase: ServerClient, mapId: string, f
   }
   await supabase.rpc("refresh_image_usage");
 }
+
+// ---- 店舗の写真（工程 4-3） --------------------------------------------------
+// 区画・フロア・建物を消すと店舗の行は連鎖して消えるが、Storage の写真は残るため、
+// 消す前に写真のパスを集めておき、消したあとに removeShopImages で消す
+
+/** 指定した区画の店舗の写真のパス */
+export async function shopImagePathsForSections(supabase: ServerClient, sectionIds: string[]): Promise<string[]> {
+  if (sectionIds.length === 0) return [];
+  const { data } = await supabase.from("shops").select("image_path").in("section_id", sectionIds);
+  return (data ?? []).flatMap((s) => (s.image_path ? [s.image_path] : []));
+}
+
+/** 指定したフロアにある店舗の写真のパス */
+export async function shopImagePathsForFloors(supabase: ServerClient, floorIds: string[]): Promise<string[]> {
+  if (floorIds.length === 0) return [];
+  const { data: sections } = await supabase.from("sections").select("id").in("floor_id", floorIds);
+  return shopImagePathsForSections(supabase, (sections ?? []).map((s) => s.id));
+}
+
+/** 店舗の写真を消す（そのマップの shops フォルダーのものだけ） */
+export async function removeShopImages(supabase: ServerClient, mapId: string, paths: string[]): Promise<void> {
+  const own = paths.filter((p) => p.startsWith(`${mapId}/shops/`));
+  if (own.length > 0) await supabase.storage.from(MAP_IMAGES_BUCKET).remove(own);
+}

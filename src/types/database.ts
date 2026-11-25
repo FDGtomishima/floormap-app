@@ -168,6 +168,10 @@ export type Database = {
       };
       create_map: { Args: { p_name: string }; Returns: string };
       refresh_image_usage: { Args: Record<never, never>; Returns: number };
+      import_shops: {
+        Args: { p_map_id: string; p_rows: Json };
+        Returns: { created_count: number; updated_count: number }[];
+      };
       set_floor_image: {
         Args: {
           p_floor_id: string;

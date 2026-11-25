@@ -3,6 +3,7 @@
 // 区画の作成・形の変更・削除（F-05）。本人のマップ以外は RLS で拒否される。
 // 区画エディタは画面側で状態を持つため、形の変更では画面の再読み込み（refresh）をしない
 import { refresh } from "next/cache";
+import { removeShopImages, shopImagePathsForSections } from "@/lib/floor-image-cleanup";
 import { normalizePolygon, type Point } from "@/lib/polygon";
 import { normalizeCode } from "@/lib/section-number";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -57,13 +58,15 @@ export async function updateSectionPoints(sectionId: string, points: Point[]): P
 
 export async function deleteSection(sectionId: string): Promise<DeleteSectionResult> {
   const supabase = await createSupabaseServerClient();
-  // 紐づく店舗もまとめて削除される（確認は画面側で行う）
-  const { data, error } = await supabase.from("sections").delete().eq("id", sectionId).select("id");
+  // 紐づく店舗もまとめて削除される（確認は画面側で行う）。店舗の写真は先にパスを集めておく
+  const shopImages = await shopImagePathsForSections(supabase, [sectionId]);
+  const { data, error } = await supabase.from("sections").delete().eq("id", sectionId).select("id, map_id");
   if (error) {
     console.error("deleteSection failed", error);
     return { ok: false, error: "unknown" };
   }
   if (!data || data.length === 0) return { ok: false, error: "notFound" };
+  await removeShopImages(supabase, data[0].map_id, shopImages);
   refresh();
   return { ok: true };
 }

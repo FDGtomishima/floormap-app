@@ -12,4 +12,13 @@ export const FLOOR_IMAGE = {
   quality: 0.85,
 } as const;
 
+/** 店舗の写真の条件（仮の値）。保存先は map-images/{map_id}/shops/ */
+export const SHOP_IMAGE = {
+  acceptTypes: ["image/png", "image/jpeg", "image/webp"] as const,
+  maxInputBytes: 10 * 1024 * 1024,
+  /** 長辺の最大ピクセル（閲覧画面のパネルで十分きれいに見える大きさ） */
+  maxEdge: 1200,
+  quality: 0.85,
+} as const;
+
 export const MAP_IMAGES_BUCKET = "map-images";

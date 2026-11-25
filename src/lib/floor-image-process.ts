@@ -1,5 +1,5 @@
 // ブラウザでフロア画像を縮小・圧縮する（F-04 ①）。Client Component からだけ使う
-import { FLOOR_IMAGE } from "./floor-image-config";
+import { FLOOR_IMAGE, SHOP_IMAGE } from "./floor-image-config";
 
 export type ProcessedImage = { blob: Blob; width: number; height: number; extension: "webp" | "jpg" };
 export type ProcessedFloorImage = { edit: ProcessedImage; display: ProcessedImage };
@@ -27,7 +27,7 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number):
   return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 }
 
-async function encode(source: ImageBitmap, maxEdge: number): Promise<ProcessedImage> {
+async function encode(source: ImageBitmap, maxEdge: number, quality: number = FLOOR_IMAGE.quality): Promise<ProcessedImage> {
   const { width, height } = fitWithin(source.width, source.height, maxEdge);
   const canvas = document.createElement("canvas");
   canvas.width = width;
@@ -41,9 +41,9 @@ async function encode(source: ImageBitmap, maxEdge: number): Promise<ProcessedIm
   context.drawImage(source, 0, 0, width, height);
 
   // WebP に対応していないブラウザでは JPEG にする
-  const webp = await canvasToBlob(canvas, "image/webp", FLOOR_IMAGE.quality);
+  const webp = await canvasToBlob(canvas, "image/webp", quality);
   if (webp && webp.type === "image/webp") return { blob: webp, width, height, extension: "webp" };
-  const jpeg = await canvasToBlob(canvas, "image/jpeg", FLOOR_IMAGE.quality);
+  const jpeg = await canvasToBlob(canvas, "image/jpeg", quality);
   if (!jpeg) throw new FloorImageError("decodeFailed");
   return { blob: jpeg, width, height, extension: "jpg" };
 }
@@ -62,6 +62,31 @@ export async function processFloorImage(file: File): Promise<ProcessedFloorImage
     const edit = await encode(bitmap, FLOOR_IMAGE.editMaxEdge);
     const display = await encode(bitmap, FLOOR_IMAGE.displayMaxEdge);
     return { edit, display };
+  } finally {
+    bitmap.close();
+  }
+}
+
+// ---- 店舗の写真（工程 4-2） ----------------------------------------------------
+
+export function validateShopImageFile(file: File): FloorImageErrorKey | null {
+  if (!(SHOP_IMAGE.acceptTypes as readonly string[]).includes(file.type)) return "unsupportedType";
+  if (file.size > SHOP_IMAGE.maxInputBytes) return "tooLarge";
+  return null;
+}
+
+/** 店舗の写真を縮小・圧縮する（1サイズ） */
+export async function processShopImage(file: File): Promise<ProcessedImage> {
+  const invalid = validateShopImageFile(file);
+  if (invalid) throw new FloorImageError(invalid);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    throw new FloorImageError("decodeFailed");
+  }
+  try {
+    return await encode(bitmap, SHOP_IMAGE.maxEdge, SHOP_IMAGE.quality);
   } finally {
     bitmap.close();
   }
